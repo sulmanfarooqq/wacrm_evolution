@@ -1,0 +1,7 @@
+# Cloudflared tunnel logs
+cf-out.log
+cf-err.log
+
+# OS junk
+.DS_Store
+Thumbs.db

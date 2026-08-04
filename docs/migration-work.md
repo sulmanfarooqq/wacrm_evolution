@@ -5,10 +5,12 @@ This document records **everything that was changed** to migrate the `wacrm` CRM
 self-hosted **Evolution API** instance, and to switch the built-in AI assistant
 to **Google Gemini**.
 
-- Migration target: Evolution API v2.3.7, instance `evolution_exchange`
-  (connected at `sulmanfarooqq923425034517@s.whatsapp.net`), base URL
+- Migration target: Evolution API v2.3.7, instance `test1` (the instance name
+  is `test1`; `evolution_exchange` is just the WhatsApp profile/client name
+  shown in the Manager dashboard), connected at
+  `sulmanfarooqq923425034517@s.whatsapp.net`, base URL
   `https://evolution-api-production-3988.up.railway.app/`
-- Current verification state: **typecheck ✔ · lint 0 errors ✔ · 631 tests pass ✔**
+- Current verification state: **typecheck ✔ · lint 0 errors ✔ · 633 tests pass ✔**
 
 ---
 
@@ -50,7 +52,7 @@ Full rewrite of the transport layer. Endpoints used:
 | `POST /message/sendButtons/{instance}` | Up to 3 reply buttons | body `{ number, title, description, footer, buttons: [{ title:'reply', displayText, id }] }` |
 | `POST /message/sendList/{instance}` | Tap-to-expand list | body `{ number, title, description, buttonText, footerText, values: [{ title, rows: [{ title, description, rowId }] }] }` |
 | `GET /instance/connectionState/{instance}` | Verify + connection probe | → `{ instance: { state: 'open'\|'close', ownerJid } }` |
-| `POST /webhook/set/{instance}` | Configure webhook | body `{ url, webhook_by_events:false, webhook_base64:false, events:[...] }` |
+| `POST /webhook/set/{instance}` | Configure webhook | body `{ webhook: { enabled:true, url, byEvents:false, base64:false, events:[...] } }` (v2 wrapper form — the v1 flat `webhook_by_events` shape returns 400) |
 | `POST /chat/getBase64FromMediaMessage/{instance}` | Download inbound media | body `{ message: { key: { id } }, convertToMp4:false }` |
 
 Key implementation details:
@@ -169,6 +171,12 @@ already understands).
   - `isRegistered` → `isWebhookConfigured` (driven by `webhook_configured_at`).
   - Setup instructions rewritten for the Evolution Manager (QR connect, global
     API key, webhook events).
+  - Step-instruction items use next-intl **rich text** (`t.rich` with
+    `strong`/`code` render fns) instead of `dangerouslySetInnerHTML`. Plain
+    `t()` throws `INVALID_MESSAGE: INVALID_TAG` on strings containing HTML
+    tags, so the `step*` strings no longer carry `class="text-foreground"`
+    attributes — the module-level `Strong`/`Code` helpers apply the styling at
+    render time.
   - "Verify setup" hits `/api/whatsapp/config/verify-registration`; the probe
     shows checks, `webhook_configured_at`, `connected_at`.
   - Doc link → `https://doc.evolution-api.com/v2/en/get-started/introduction`.
@@ -243,7 +251,7 @@ already understands).
 ```
 npm run typecheck  → pass (0 errors)
 npm run lint       → 0 errors (38 pre-existing warnings)
-npm test           → 66 files, 631 tests passed
+npm test           → 67 files, 633 tests passed
 ```
 
 ---

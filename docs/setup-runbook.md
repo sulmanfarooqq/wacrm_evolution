@@ -1,9 +1,8 @@
 # wacrm + Evolution API — Setup & Go-Live Runbook
 
 Everything you need to turn `wacrm` into a working **WhatsApp AI auto-reply
-system** backed by your self-hosted Evolution API instance
-(`evolution_exchange` on Railway, already connected to
-`sulmanfarooqq923425034517@s.whatsapp.net`).
+system** backed by your self-hosted Evolution API instance (instance `test1` on
+Railway, already connected to `sulmanfarooqq923425034517@s.whatsapp.net`).
 
 ---
 
@@ -12,14 +11,17 @@ system** backed by your self-hosted Evolution API instance
 | Thing | Value |
 |---|---|
 | Evolution API version | v2.3.7 |
-| Instance name | `evolution_exchange` |
+| Instance name | `test1` (note: `evolution_exchange` is the WhatsApp profile name shown in the Manager, **not** the instance name) |
+| Instance API key | `AC1B5DE9D585-4678-BFFD-8AC38C2A8F03` |
 | Instance base URL | `https://evolution-api-production-3988.up.railway.app` |
 | WhatsApp number | `sulmanfarooqq923425034517@s.whatsapp.net` (state `open`) |
+| Webhook | configured on `test1` with events `MESSAGES_UPSERT`, `MESSAGES_UPDATE`, `CONNECTION_UPDATE` |
 | wacrm codebase | `C:\Users\my\Desktop\evolution\wacrm` (migration complete, all tests green) |
 
-**What you still need to get:** your Evolution **API key** (per-instance or
-global, from the Evolution Manager) and a **Google Gemini API key** (from
-aistudio.google.com).
+**What you still need to get:** a **Google Gemini API key** (from
+aistudio.google.com). The Evolution API key is already known and saved — see the
+table above. (Note: the key in the table is the instance token from the Manager;
+it must be used both as the wacrm saved key and as the webhook's `apikey`.)
 
 ---
 
@@ -78,6 +80,10 @@ be running at a public HTTPS URL that your Railway Evolution instance can reach.
 
 - **Local testing:** run `npm run dev` and put a tunnel in front of it, e.g.
   `cloudflared tunnel --url http://localhost:3000` (free) or ngrok.
+  - Current local tunnel: `https://deposit-pleasant-buck-apartment.trycloudflare.com`
+    (cloudflared). **The URL rotates every time the tunnel restarts** — after a
+    restart, update `NEXT_PUBLIC_SITE_URL` and re-save the WhatsApp config so
+    the webhook points at the new URL (or use a stable domain for production).
 - **Production:** deploy to Vercel / Railway / Hostinger and set
   `NEXT_PUBLIC_SITE_URL` to the deployed URL.
 - The webhook is **POST-only** and token-authenticated by the event body's
@@ -105,9 +111,9 @@ Fill in the three fields:
 
 | Field | Value |
 |---|---|
-| Instance Name | `evolution_exchange` |
+| Instance Name | `test1` |
 | API Base URL | `https://evolution-api-production-3988.up.railway.app` |
-| API Key | your Evolution API key |
+| API Key | `AC1B5DE9D585-4678-BFFD-8AC38C2A8F03` |
 
 Click **Save**. On save, the app:
 
@@ -120,6 +126,10 @@ Click **Save**. On save, the app:
 You should see "webhook configured" in the UI. If the instance shows a
 "not connected" state, reopen the instance in the Evolution Manager and
 re-scan the QR.
+
+> The API key you save must be the **same token the instance's webhook sends as
+> `apikey`** in each event — wacrm matches them to authenticate inbound traffic.
+> A mismatch shows up as a 401 on the webhook.
 
 ---
 
@@ -157,7 +167,7 @@ Assigning works from the conversation's agent controls in the inbox.
 2. Save the WhatsApp config (step 5) and confirm the webhook is configured.
 3. Enable AI auto-reply with a Gemini key (step 6).
 4. From a **different** phone, send a WhatsApp message to
-   `+9…` (the number connected to `evolution_exchange`).
+   `+9…` (the number connected to instance `test1`).
 5. Expected:
    - The message appears in the app's inbox.
    - Gemini replies automatically within a few seconds.
@@ -194,6 +204,7 @@ The AI is the fallback responder. For deterministic behaviour you can build:
 | Media doesn't render | Confirm `chat-media` storage bucket is public and the migration created it; the webhook uses the service-role key to upload |
 | Template save with image header fails | Evolution has no Resumable Upload — remove the image header (templates are local CRUD only) |
 | 401 on webhook | `apikey` in the event body doesn't match the saved key |
+| Webhook stops working after a tunnel restart | cloudflared URLs rotate — restart the tunnel, update `NEXT_PUBLIC_SITE_URL`, re-save the WhatsApp config (save re-sets the webhook) |
 
 ---
 

@@ -82,6 +82,7 @@ export async function POST(request: Request) {
       userPrompt: config.systemPrompt,
       mode: 'auto_reply',
       knowledge,
+      handoffEnabled: !!config.handoffAgentId,
     })
 
     const { text, handoff } = await generateReply({ config, systemPrompt, messages })

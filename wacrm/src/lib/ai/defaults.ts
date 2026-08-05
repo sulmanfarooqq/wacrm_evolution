@@ -55,8 +55,13 @@ export function buildSystemPrompt(args: {
   mode: 'draft' | 'auto_reply'
   /** Knowledge-base excerpts retrieved for the current question. */
   knowledge?: string[]
+  /** Whether a human agent is configured to receive handed-off threads.
+   *  When false the model is told to always answer and never emit the
+   *  handoff sentinel — an auto-reply with nobody to hand off to must
+   *  keep replying. Defaults to true. */
+  handoffEnabled?: boolean
 }): string {
-  const { userPrompt, mode, knowledge } = args
+  const { userPrompt, mode, knowledge, handoffEnabled = true } = args
   const parts: string[] = [
     'You are a customer-messaging assistant for a business that uses a WhatsApp CRM. ' +
       'You are shown the recent WhatsApp conversation between the business (assistant) and a customer (user). ' +
@@ -68,9 +73,15 @@ export function buildSystemPrompt(args: {
   ]
 
   if (mode === 'auto_reply') {
-    parts.push(
-      `You are replying automatically with no human in the loop. If you cannot confidently and safely help — the customer explicitly asks for a human, is upset or complaining, or the request needs information you do not have — reply with exactly ${HANDOFF_SENTINEL} and nothing else. A human agent will then take over. Prefer handing off over guessing.`,
-    )
+    if (handoffEnabled) {
+      parts.push(
+        `You are replying automatically with no human in the loop. If you cannot confidently and safely help — the customer explicitly asks for a human, is upset or complaining, or the request needs information you do not have — reply with exactly ${HANDOFF_SENTINEL} and nothing else. A human agent will then take over. Prefer handing off over guessing.`,
+      )
+    } else {
+      parts.push(
+        'You are replying automatically with no human in the loop, and no human is available to take over. You must always produce a reply — never emit the handoff marker or an empty response. If you lack the information to answer, give the best safe, helpful reply you can from the business context (for example, say you will check and follow up) rather than handing off.',
+      )
+    }
   }
 
   if (userPrompt && userPrompt.trim()) {
@@ -79,7 +90,7 @@ export function buildSystemPrompt(args: {
 
   if (knowledge && knowledge.length > 0) {
     const fallback =
-      mode === 'auto_reply'
+      mode === 'auto_reply' && handoffEnabled
         ? `if they don't cover the question, do not guess — reply with exactly ${HANDOFF_SENTINEL} so a human can help`
         : "if they don't cover the question, don't guess — say you'll check and follow up"
     parts.push(

@@ -34,8 +34,11 @@ files at the root — none of those deploy.
    and framework → **Next.js**, so Vercel picks everything up automatically.
    You should see the Build/Run commands pre-filled with
    `npm run build` / `npm start`. If Root Directory asks, use `wacrm`.
-3. **Environment Variables** — add all of these (Reuse the values from your
-   `wacrm/.env.local`):
+3. **Environment Variables** — fastest way: import the ready-made file
+   **`wacrm/.env.vercel`**. In Vercel → **Project → Settings → Environment
+   Variables → Add**, paste the file's contents (multi-line `KEY=VALUE`) or
+   upload it, then edit the one variable below. Or add them manually
+   (values duplicate `wacrm/.env.local`):
 
 | Name | Value |
 |---|---|
@@ -43,7 +46,7 @@ files at the root — none of those deploy.
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase **anon** key |
 | `SUPABASE_SERVICE_ROLE_KEY` | Supabase **service_role** key (secret — server-only) |
 | `ENCRYPTION_KEY` | **Copy the exact value from `wacrm/.env.local`.** Changing it orphans every stored token → WhatsApp config shows "can't be decrypted" until re-saved |
-| `NEXT_PUBLIC_SITE_URL` | The app URL. Leave a placeholder now (`https://wacrm-evolution.vercel.app`), then **update it after deploy** to your real URL |
+| `NEXT_PUBLIC_SITE_URL` | The app URL. `.env.vercel` has a placeholder here — replace it with your real URL (`https://wacrm-evolution.vercel.app`) before importing, or update it in Vercel after deploy + Redeploy |
 | `NEXT_PUBLIC_APP_LOCALE` | `en` |
 | `EVOLUTION_API_URL` | `https://evolution-api-production-3988.up.railway.app` (default for new/fresh accounts) |
 | `EVOLUTION_API_KEY` | Your Evolution API key (default; per-account settings in the DB usually override) |
@@ -102,10 +105,11 @@ Wait steps in automations (drain `/api/automations/cron`) need a scheduled
 caller. Vercel Cron is paid; this repo ships a free **GitHub Actions**
 workflow instead:
 
-1. Generate a secret:
-   `openssl rand -hex 32`
-2. In Vercel, set env var **`AUTOMATION_CRON_SECRET`** to that value and
-   **Redeploy**.
+1. `AUTOMATION_CRON_SECRET` is already inside `wacrm/.env.vercel`. It's a
+   shared secret, so generate your own fresh one instead
+   (`openssl rand -hex 32`) and use that value everywhere:
+2. In Vercel, make sure env var **`AUTOMATION_CRON_SECRET`** holds that value
+   and **Redeploy**.
 3. In GitHub (`wacrm_evolution` → **Settings → Secrets and variables →
    Actions → New repository secret**) add:
    - `CRON_URL` → `https://<your-project>.vercel.app`

@@ -30,10 +30,14 @@ files at the root — none of those deploy.
 
 1. Go to [vercel.com/new](https://vercel.com/new) and **import** the
    `wacrm_evolution` repo.
-2. `vercel.json` at the repo root already sets **Root Directory → `wacrm`**
-   and framework → **Next.js**, so Vercel picks everything up automatically.
-   You should see the Build/Run commands pre-filled with
-   `npm run build` / `npm start`. If Root Directory asks, use `wacrm`.
+2. **Set Root Directory → `wacrm`** (this is a project setting now — it can't
+   live in `vercel.json` anymore). Vercel's framework detection usually spots
+   the Next.js app in `wacrm/` and pre-fills **Root Directory → `wacrm`**
+   automatically on the import screen. If it doesn't, pick `wacrm` from the
+   dropdown. After the project exists you can also set it under
+   **Settings → General → Root Directory → `wacrm`** and Redeploy.
+   `vercel.json` at the repo root already pins framework → **Next.js** and
+   `npm run build`, so the Build/Run commands come pre-filled.
 3. **Environment Variables** — fastest way: import the ready-made file
    **`wacrm/.env.vercel`**. In Vercel → **Project → Settings → Environment
    Variables → Add**, paste the file's contents (multi-line `KEY=VALUE`) or
@@ -128,7 +132,7 @@ header.)
 
 | Problem | Likely fix |
 |---|---|
-| Import shows "no package.json" | `vercel.json` Root Directory is `wacrm` — confirm it's set on the project (Settings → General) if the import didn't apply it |
+| Import shows "no package.json" / build can't find the app | Root Directory isn't `wacrm` — set it on the import screen, or under Settings → General → Root Directory → `wacrm` and Redeploy |
 | Build fails / env crashed at build | Make sure `NEXT_PUBLIC_SUPABASE_URL` + `NEXT_PUBLIC_SUPABASE_ANON_KEY` are set for the production environment before building |
 | Blank login page | `NEXT_PUBLIC_SUPABASE_ANON_KEY` mismatch — Vercel env must match `wacrm/.env.local` |
 | "Stored API key can't be decrypted" | `ENCRYPTION_KEY` differs from the one used when the config was saved — click **Reset Configuration**, re-save |

@@ -1,0 +1,5 @@
+{
+  "rootDirectory": "wacrm",
+  "framework": "nextjs",
+  "buildCommand": "npm run build"
+}

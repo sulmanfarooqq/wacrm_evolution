@@ -65,6 +65,16 @@ const SECURITY_HEADERS = [
 
 const nextConfig: NextConfig = {
   /**
+   * Anchor Turbopack's boundary at the wacrm package root. Without this,
+   * Next walks up and can pick a stray package-lock.json in a parent
+   * directory as the inferred workspace root (multiple-lockfile warning).
+   * On Vercel the repo root is the package root, so this is a no-op there.
+   */
+  turbopack: {
+    root: process.cwd(),
+  },
+
+  /**
    * Cross-origin dev access (Next.js 16).
    *
    * Next 16 blocks requests to dev-only resources (`/_next/*` internals,

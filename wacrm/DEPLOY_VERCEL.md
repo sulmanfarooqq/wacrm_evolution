@@ -1,151 +1,144 @@
-# PropertySales AI — Vercel Deployment Guide
+# wacrm + Evolution API — Vercel Deployment Guide
 
-## Prerequisites
+Deploy the Next.js app (`wacrm/`) to Vercel, connected to your existing
+Supabase project and self-hosted Evolution API instance on Railway.
 
-1. **Supabase project** (free tier) — sign up at [supabase.com](https://supabase.com)
-2. **GitHub account** — [github.com](https://github.com)
-3. **Vercel account** — sign up at [vercel.com](https://vercel.com) (use GitHub login)
-
----
-
-## Step 1: Create a Supabase Project
-
-1. Go to [supabase.com/dashboard](https://supabase.com/dashboard) → **New project**
-2. Fill in:
-   - **Name:** `propertysales-demo`
-   - **Database password:** Create a strong one and save it
-   - **Region:** Choose a region close to Pakistan (e.g. Singapore `ap-southeast-1` or Mumbai `ap-south-1`)
-3. Click **Create new project** (takes ~2 minutes)
-4. Once created, go to **Project Settings → API** and copy:
-   - `Project URL` → this is your `NEXT_PUBLIC_SUPABASE_URL`
-   - `anon public` key → this is your `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-   - `service_role` key → this is your `SUPABASE_SERVICE_ROLE_KEY` (keep secret!)
+> The Future of WhatsApp: this is the Fastest way to get it live on HTTPS.
 
 ---
 
-## Step 2: Run the Database Migrations
+## Before you start
 
-In the Supabase dashboard:
+You need:
 
-1. Go to **SQL Editor** → **New query**
-2. Open each file from `supabase/migrations/` in order (001 to 036), copy the SQL, and paste it into the editor
-3. Click **Run** for each one
+1. **Supabase project** — already created (URL + anon key + service_role key).
+2. **Existing `wacrm/.env.local`** — copy the values from here into Vercel so
+   the deployed app uses the **same** `ENCRYPTION_KEY`, database, and Evolution
+   credentials as your local setup. This file is git-ignored, it never leaves
+   your machine.
+3. **This repo on GitHub** — already pushed
+   (`https://github.com/sulmanfarooqq/wacrm_evolution.git`, branch `main`).
+4. **Vercel account** — sign up at [vercel.com](https://vercel.com) with the
+   GitHub login.
 
-**Faster method** — use the Supabase CLI (if you have it):
-```bash
-npx supabase link --project-ref your-project-ref
-npx supabase db push
-```
-
-Or ask an AI to merge all 36 SQL files into one and run it.
-
----
-
-## Step 3: Create a GitHub Repository
-
-1. Go to [github.com/new](https://github.com/new)
-2. **Repository name:** `propertysales-demo`
-3. Keep it **Public** (free) or **Private** (if you prefer)
-4. **Do NOT** initialize with README, .gitignore, or license
-5. Click **Create repository**
-
-Then run the commands GitHub shows you:
-
-```bash
-cd wacrm
-git add .
-git commit -m "Initial: wacrm fork for PropertySales AI"
-git remote add origin https://github.com/YOUR_USERNAME/propertysales-demo.git
-git branch -M main
-git push -u origin main
-```
-
-Replace `YOUR_USERNAME` with your GitHub username.
+`wacrm/` is the Next.js app. The repo also contains `docs/` and some local
+files at the root — none of those deploy.
 
 ---
 
-## Step 4: Deploy to Vercel
+## Step 1: Deploy to Vercel
 
-1. Go to [vercel.com/dashboard](https://vercel.com/dashboard)
-2. Click **Add New → Project**
-3. Import your `propertysales-demo` GitHub repo
-4. Vercel will auto-detect Next.js — the defaults are correct
-5. In **Environment Variables**, add all of these:
+1. Go to [vercel.com/new](https://vercel.com/new) and **import** the
+   `wacrm_evolution` repo.
+2. `vercel.json` at the repo root already sets **Root Directory → `wacrm`**
+   and framework → **Next.js**, so Vercel picks everything up automatically.
+   You should see the Build/Run commands pre-filled with
+   `npm run build` / `npm start`. If Root Directory asks, use `wacrm`.
+3. **Environment Variables** — add all of these (Reuse the values from your
+   `wacrm/.env.local`):
 
 | Name | Value |
 |---|---|
-| `NEXT_PUBLIC_SUPABASE_URL` | Your Supabase project URL |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Your Supabase anon key |
-| `SUPABASE_SERVICE_ROLE_KEY` | Your Supabase service_role key |
-| `ENCRYPTION_KEY` | Generate: `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"` |
-| `META_APP_SECRET` | Generate any random string: `openssl rand -hex 16` (won't be used for demo) |
-| `NEXT_PUBLIC_SITE_URL` | Will be set automatically after deploy (e.g. `https://propertysales-demo.vercel.app`) |
+| `NEXT_PUBLIC_SUPABASE_URL` | Your Supabase project URL (`https://xxxx.supabase.co`) |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase **anon** key |
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase **service_role** key (secret — server-only) |
+| `ENCRYPTION_KEY` | **Copy the exact value from `wacrm/.env.local`.** Changing it orphans every stored token → WhatsApp config shows "can't be decrypted" until re-saved |
+| `NEXT_PUBLIC_SITE_URL` | The app URL. Leave a placeholder now (`https://wacrm-evolution.vercel.app`), then **update it after deploy** to your real URL |
 | `NEXT_PUBLIC_APP_LOCALE` | `en` |
+| `EVOLUTION_API_URL` | `https://evolution-api-production-3988.up.railway.app` (default for new/fresh accounts) |
+| `EVOLUTION_API_KEY` | Your Evolution API key (default; per-account settings in the DB usually override) |
 
-6. Click **Deploy** (takes ~2-3 minutes)
-7. Once done, Vercel gives you a URL like `https://propertysales-demo.vercel.app`
+> `EVOLUTION_API_URL` / `EVOLUTION_API_KEY` are optional defaults — your
+> existing account already has its own saved in Settings → WhatsApp and
+> those win.
 
----
+4. Click **Deploy** (~2–3 min). You'll get a URL like
+   `https://wacrm-evolution.vercel.app`.
+5. Update `NEXT_PUBLIC_SITE_URL` in **Vercel → Settings → Environment
+   Variables** to the real URL and click **Redeploy**.
 
-## Step 5: Sign Up at the App
-
-1. Open your Vercel URL
-2. Click **Sign Up**
-3. Enter your email and password
-4. You'll be logged in to the dashboard
-
----
-
-## Step 6: Seed Demo Data
-
-From your local machine:
-
-```bash
-cd wacrm
-
-# Set your Supabase credentials
-export SUPABASE_URL=https://your-project.supabase.co
-export SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
-
-# Run the seed script with your login email
-npx tsx scripts/seed.ts your@email.com
-```
-
-This creates:
-- 10 demo contacts (Pakistani names + diaspora buyers)
-- 5 demo conversations with full message histories
-- 1 real estate pipeline with 7 stages
-- 5 demo deals in various stages
-- 3 message templates
-- Tags (Hot Buyer, Diaspora, File Investor, etc.)
+**Optional staging support:** add `SUPABASE_SERVICE_ROLE_KEY` etc. to the
+Preview environment too if you want preview builds to hit the same DB.
 
 ---
 
-## Step 7: Explore the Demo
+## Step 2: First login
 
-After seeding:
+1. Open your Vercel URL → **Sign up** → email + password (Supabase Auth).
+2. You land on `/dashboard`.
 
-1. **Inbox** — see conversations with buyers looking for properties
-2. **Contacts** — all 10 demo contacts with tags
-3. **Pipelines** — real estate pipeline with deals from New Lead to Closed
-4. **Dashboard** — charts and metrics
+The database already exists (same Supabase project you use locally), so no
+migrations to run. Demo/seed data is created by `wacrm/scripts/seed.ts` and
+should be run **locally**, not on Vercel.
+
+---
+
+## Step 3: Reconnect WhatsApp (webhook points at Vercel)
+
+The Evolution instance on Railway must POST events to your **deployed**
+URL, not your old local tunnel.
+
+1. In the app → **Settings → WhatsApp**.
+2. The fields usually keep the saved instance `test1`, base URL, and API key.
+   Click **Save** — the app re-runs the connection check and
+   **auto-configures the webhook** to
+   `https://<your-project>.vercel.app/api/whatsapp/webhook`
+   (it uses `NEXT_PUBLIC_SITE_URL` or the request host).
+3. Confirm "webhook configured" and instance state `open`.
+
+**Verify end-to-end:** from another phone, message the connected number.
+It should appear in the inbox and (if AI auto-reply is on with a Gemini key)
+get an automatic reply within a few seconds.
+
+> If the status shows "not connected", reopen the instance in the Evolution
+> Manager and re-scan the QR. The API key you enter must match the `apikey`
+> the instance sends on webhook events, or events get a 401.
+
+---
+
+## Step 4: Keep automations running (Hobby plan — free cron)
+
+Wait steps in automations (drain `/api/automations/cron`) need a scheduled
+caller. Vercel Cron is paid; this repo ships a free **GitHub Actions**
+workflow instead:
+
+1. Generate a secret:
+   `openssl rand -hex 32`
+2. In Vercel, set env var **`AUTOMATION_CRON_SECRET`** to that value and
+   **Redeploy**.
+3. In GitHub (`wacrm_evolution` → **Settings → Secrets and variables →
+   Actions → New repository secret**) add:
+   - `CRON_URL` → `https://<your-project>.vercel.app`
+   - `AUTOMATION_CRON_SECRET` → same value as above
+4. Open the **Actions** tab → the "drain automation wait-steps" workflow →
+   **Enable workflow**. It now runs every 5 minutes.
+
+No secrets configured? The app still deploys and works — only Wait steps
+won't advance until you set this up. (Alternative external pinger:
+cron-job.org / UptimeRobot hitting the cron URL with the `x-cron-secret`
+header.)
 
 ---
 
 ## Troubleshooting
 
-| Problem | Likely Fix |
+| Problem | Likely fix |
 |---|---|
-| `npm run build` fails | Check Node version in Vercel settings (use 20.x) |
-| Login shows blank page | Check `NEXT_PUBLIC_SUPABASE_ANON_KEY` is correct |
-| "Failed to find user" in seed | You signed up with a different email than you passed to seed.ts |
-| 500 error on pages | Run the Supabase migrations — some might be missing |
+| Import shows "no package.json" | `vercel.json` Root Directory is `wacrm` — confirm it's set on the project (Settings → General) if the import didn't apply it |
+| Build fails / env crashed at build | Make sure `NEXT_PUBLIC_SUPABASE_URL` + `NEXT_PUBLIC_SUPABASE_ANON_KEY` are set for the production environment before building |
+| Blank login page | `NEXT_PUBLIC_SUPABASE_ANON_KEY` mismatch — Vercel env must match `wacrm/.env.local` |
+| "Stored API key can't be decrypted" | `ENCRYPTION_KEY` differs from the one used when the config was saved — click **Reset Configuration**, re-save |
+| No inbound messages | Webhook points at the old tunnel — re-save WhatsApp config (step 3); confirm `NEXT_PUBLIC_SITE_URL` |
+| Webhook 401 | Saved API key ≠ instance's `apikey` — update and re-save config |
+| Automations Wait step stuck | Enable the GitHub Actions cron (step 4) or an external pinger |
+| Long webhook/broadcast timeouts | Routes use `maxDuration = 60` (Hobby max). Large broadcasts should be split into smaller batches |
 
 ---
 
-## Next Steps After Demo
+## Health check after deploy
 
-- Add your own properties to the database
-- Configure the AI assistant (Settings → AI Assistant)
-- Connect a real WhatsApp Business number
-- Customize the pipeline stages for your agency
+- [ ] Home/login page loads on `https://<your-project>.vercel.app`
+- [ ] Sign-up works (new account → dashboard)
+- [ ] Settings → WhatsApp shows connected + webhook configured
+- [ ] Send/receive a WhatsApp message end-to-end
+- [ ] GitHub Actions "drain automation wait-steps" enabled (or pinger set)

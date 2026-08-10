@@ -2,6 +2,9 @@
 cf-out.log
 cf-err.log
 
+# Stray Evolution API dump at repo root
+/evolutionapi
+
 # OS junk
 .DS_Store
 Thumbs.db

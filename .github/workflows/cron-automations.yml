@@ -1,0 +1,30 @@
+name: drain automation wait-steps
+
+# Vercel Cron is a paid (Pro+) feature, so on the free Hobby plan this
+# scheduled GitHub Action is the pinger for /api/automations/cron.
+# It drains due `automation_pending_executions` rows (Wait steps in
+# no-code automations) every 5 minutes.
+#
+# Setup (one time, in the GitHub repo → Settings → Secrets and
+# variables → Actions → New repository secret):
+#   CRON_URL                   → https://<your-project>.vercel.app
+#   AUTOMATION_CRON_SECRET     → the same value you set as
+#                                AUTOMATION_CRON_SECRET on Vercel
+#                                (generate: openssl rand -hex 32)
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch: {}
+
+jobs:
+  drain:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Drain due automation executions
+        env:
+          CRON_URL: ${{ secrets.CRON_URL }}
+          CRON_SECRET: ${{ secrets.AUTOMATION_CRON_SECRET }}
+        run: |
+          curl -fsS -m 55 \
+            -H "x-cron-secret: ${CRON_SECRET}" \
+            "${CRON_URL}/api/automations/cron" || exit 1

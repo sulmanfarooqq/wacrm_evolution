@@ -132,7 +132,7 @@ header.)
 
 | Problem | Likely fix |
 |---|---|
-| Import shows "no package.json" / build can't find the app | Root Directory isn't `wacrm` — set it on the import screen, or under Settings → General → Root Directory → `wacrm` and Redeploy |
+| Build log: "No Next.js version detected … check your Root Directory" | This means Root Directory is still the repo root. Set it to `wacrm` under Settings → General → Root Directory, save, then Redeploy |
 | Build fails / env crashed at build | Make sure `NEXT_PUBLIC_SUPABASE_URL` + `NEXT_PUBLIC_SUPABASE_ANON_KEY` are set for the production environment before building |
 | Blank login page | `NEXT_PUBLIC_SUPABASE_ANON_KEY` mismatch — Vercel env must match `wacrm/.env.local` |
 | "Stored API key can't be decrypted" | `ENCRYPTION_KEY` differs from the one used when the config was saved — click **Reset Configuration**, re-save |
